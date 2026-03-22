@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_IMAGE_NAME = 'shopping-cart-app'
+        DOCKER_HUB_REPO = 'docker.io/YOUR_DOCKERHUB_USERNAME/shopping-cart-app'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        
+        stage('JaCoCo Coverage') {
+            steps {
+                sh 'mvn jacoco:report'
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo Coverage Report'
+                ])
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER} ."
+                sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            when {
+                branch 'main'
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_HUB_PASS" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+                        docker push ${DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE_NAME}:latest
+                        docker logout
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            junit 'target/surefire-reports/*.xml'
+            archiveArtifacts artifacts: 'target/**/*.jar', fingerprint: true
+        }
+    }
+}
