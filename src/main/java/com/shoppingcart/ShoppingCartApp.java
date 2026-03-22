@@ -14,9 +14,9 @@ public class ShoppingCartApp {
     private ResourceBundle messages;
     private BufferedReader reader;
 
-    public ShoppingCartApp(Locale locale) {
+    public ShoppingCartApp(Locale locale, BufferedReader reader) {
         this.messages = ResourceBundle.getBundle(BUNDLE_NAME, locale);
-        this.reader = new BufferedReader(new InputStreamReader(System.in));
+        this.reader = reader;
     }
 
     public String getMessage(String key) {
@@ -31,18 +31,19 @@ public class ShoppingCartApp {
         reader.close();
     }
 
-    public static Locale selectLanguage() throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        
-        System.out.println("Select language / Vali kieli / Välj språk / 言語を選択:");
+    public static Locale selectLanguage(BufferedReader br) throws IOException {
+        System.out.println("Select language / Vali kieli / Valja sprak / 言語を選択:");
         System.out.println("1. English");
         System.out.println("2. Suomi (Finnish)");
         System.out.println("3. Svenska (Swedish)");
         System.out.println("4. 日本語 (Japanese)");
         
         String choice = br.readLine();
+        if (choice == null) {
+            return new Locale("en", "US");
+        }
         
-        switch (choice) {
+        switch (choice.trim()) {
             case "2":
                 return new Locale("fi", "FI");
             case "3":
@@ -55,9 +56,10 @@ public class ShoppingCartApp {
     }
 
     public static void main(String[] args) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
-            Locale locale = selectLanguage();
-            ShoppingCartApp app = new ShoppingCartApp(locale);
+            Locale locale = selectLanguage(br);
+            ShoppingCartApp app = new ShoppingCartApp(locale, br);
             
             String numItemsPrompt = app.getMessage("prompt.num.items");
             System.out.println(numItemsPrompt);
