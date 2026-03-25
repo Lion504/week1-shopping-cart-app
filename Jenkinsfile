@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_IMAGE_NAME = 'shopping-cart-app'
-        DOCKER_HUB_REPO = 'docker.io/YOUR_DOCKERHUB_USERNAME/shopping-cart-app'
+        DOCKER_IMAGE_NAME = 'timo2233/shopping-cart-app'
+        DOCKER_HUB_REPO = 'docker.io/timo2233/shopping-cart-app'
     }
     
     stages {
