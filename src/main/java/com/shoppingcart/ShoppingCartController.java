@@ -33,6 +33,7 @@ public class ShoppingCartController {
     @FXML private Label numItemsLabel;
     @FXML private Label totalCostLabel;
     @FXML private Label footerLabel;
+    @FXML private Label errorLabel;
     
     private List<TextField> priceFields = new ArrayList<>();
     private List<TextField> quantityFields = new ArrayList<>();
@@ -48,12 +49,21 @@ public class ShoppingCartController {
         languageChoice.setValue("English");
         
         updateLabels();
+        clearError();
         
         languageChoice.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 changeLanguage(newVal);
             }
         });
+    }
+    
+    private void clearError() {
+        errorLabel.setText("");
+    }
+    
+    private void showError(String message) {
+        errorLabel.setText(message);
     }
     
     private void updateLabels() {
@@ -115,6 +125,7 @@ public class ShoppingCartController {
     
     @FXML
     public void onCreateItems() {
+        clearError();
         itemsContainer.getChildren().clear();
         itemTotalsContainer.getChildren().clear();
         priceFields.clear();
@@ -122,9 +133,22 @@ public class ShoppingCartController {
         
         int numItems;
         try {
-            numItems = Integer.parseInt(numItemsField.getText());
-            if (numItems <= 0) numItems = 1;
+            String text = numItemsField.getText();
+            if (text == null || text.trim().isEmpty()) {
+                showError(getMessage("error.empty.input"));
+                numItems = 1;
+            } else {
+                numItems = Integer.parseInt(text);
+                if (numItems <= 0) {
+                    showError(getMessage("error.invalid.number"));
+                    numItems = 1;
+                } else if (numItems > 100) {
+                    showError(getMessage("error.max.items"));
+                    numItems = 100;
+                }
+            }
         } catch (NumberFormatException e) {
+            showError(getMessage("error.invalid.number"));
             numItems = 1;
         }
         
@@ -153,36 +177,61 @@ public class ShoppingCartController {
     
     @FXML
     public void onCalculate() {
+        if (priceFields.isEmpty()) {
+            showError(getMessage("error.no.items"));
+            return;
+        }
+        
+        clearError();
         double total = 0;
         itemTotalsContainer.getChildren().clear();
         
         for (int i = 0; i < priceFields.size(); i++) {
             double price = 0;
             int quantity = 0;
+            boolean hasError = false;
             
             try {
                 String priceText = priceFields.get(i).getText();
                 if (priceText != null && !priceText.isEmpty()) {
                     price = Double.parseDouble(priceText);
+                    if (price < 0) {
+                        showError(getMessage("error.negative.price"));
+                        hasError = true;
+                    }
+                } else {
+                    showError(getMessage("error.empty.field"));
+                    hasError = true;
                 }
             } catch (NumberFormatException e) {
-                price = 0;
+                showError(getMessage("error.invalid.price"));
+                hasError = true;
             }
             
             try {
                 String quantityText = quantityFields.get(i).getText();
                 if (quantityText != null && !quantityText.isEmpty()) {
                     quantity = Integer.parseInt(quantityText);
+                    if (quantity < 0) {
+                        showError(getMessage("error.negative.quantity"));
+                        hasError = true;
+                    }
+                } else {
+                    showError(getMessage("error.empty.field"));
+                    hasError = true;
                 }
             } catch (NumberFormatException e) {
-                quantity = 0;
+                showError(getMessage("error.invalid.quantity"));
+                hasError = true;
             }
             
-            double itemTotal = ShoppingCartApp.calculateItemCost(price, quantity);
-            total += itemTotal;
-            
-            Label itemTotalLabel = new Label(getMessage("label.item.number") + " " + (i + 1) + ": " + String.format("%.2f", itemTotal));
-            itemTotalsContainer.getChildren().add(itemTotalLabel);
+            if (!hasError) {
+                double itemTotal = ShoppingCartApp.calculateItemCost(price, quantity);
+                total += itemTotal;
+                
+                Label itemTotalLabel = new Label(getMessage("label.item.number") + " " + (i + 1) + ": " + String.format("%.2f", itemTotal));
+                itemTotalsContainer.getChildren().add(itemTotalLabel);
+            }
         }
         
         totalCostValue.setText(String.format("%.2f", total));

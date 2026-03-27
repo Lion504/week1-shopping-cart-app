@@ -43,6 +43,8 @@
                 <Button fx:id="createItemsButton" text="Create Items" onAction="#onCreateItems"/>
             </HBox>
             
+            <Label fx:id="errorLabel" text="" style="-fx-text-fill: #e74c3c;"/>
+            
             <VBox fx:id="itemsContainer" spacing="10">
                 <padding>
                     <Insets top="0" right="0" bottom="0" left="0"/>
