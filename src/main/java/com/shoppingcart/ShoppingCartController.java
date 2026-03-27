@@ -5,9 +5,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Button;
@@ -25,22 +24,47 @@ public class ShoppingCartController {
     @FXML private TextField numItemsField;
     @FXML private Button createItemsButton;
     @FXML private Button calculateButton;
-    @FXML private Label totalCostLabel;
+    @FXML private Label totalCostValue;
     @FXML private VBox itemsContainer;
     @FXML private VBox itemTotalsContainer;
+    
+    @FXML private Label appTitleLabel;
+    @FXML private Label languageLabel;
+    @FXML private Label numItemsLabel;
+    @FXML private Label totalCostLabel;
+    @FXML private Label footerLabel;
     
     private List<TextField> priceFields = new ArrayList<>();
     private List<TextField> quantityFields = new ArrayList<>();
     
     @FXML
     public void initialize() {
+        messages = ResourceBundle.getBundle(BUNDLE_NAME, new Locale("en", "US"));
+        
+        ObservableList<String> languages = FXCollections.observableArrayList(
+            "English", "Suomi", "Svenska", "日本語", "العربية"
+        );
+        languageChoice.setItems(languages);
         languageChoice.setValue("English");
+        
+        updateLabels();
+        
         languageChoice.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 changeLanguage(newVal);
             }
         });
-        updateBundle(new Locale("en", "US"));
+    }
+    
+    private void updateLabels() {
+        appTitleLabel.setText(getMessage("app.title"));
+        languageLabel.setText(getMessage("label.language"));
+        numItemsLabel.setText(getMessage("prompt.num.items"));
+        numItemsField.setPromptText(getMessage("prompt.num.items"));
+        createItemsButton.setText(getMessage("button.create"));
+        calculateButton.setText(getMessage("button.calculate"));
+        totalCostLabel.setText(getMessage("label.total.cost"));
+        footerLabel.setText(getMessage("label.footer"));
     }
     
     private void changeLanguage(String language) {
@@ -61,10 +85,6 @@ public class ShoppingCartController {
             default:
                 locale = new Locale("en", "US");
         }
-        updateBundle(locale);
-    }
-    
-    private void updateBundle(Locale locale) {
         messages = ResourceBundle.getBundle(BUNDLE_NAME, locale);
         
         boolean isRtl = locale.getLanguage().equals("ar");
@@ -72,11 +92,8 @@ public class ShoppingCartController {
         Platform.runLater(() -> {
             itemsContainer.setNodeOrientation(isRtl ? NodeOrientation.RIGHT_TO_LEFT : NodeOrientation.LEFT_TO_RIGHT);
             itemTotalsContainer.setNodeOrientation(isRtl ? NodeOrientation.RIGHT_TO_LEFT : NodeOrientation.LEFT_TO_RIGHT);
-            
-            numItemsField.setPromptText(getMessage("prompt.num.items"));
-            createItemsButton.setText(getMessage("button.create"));
-            calculateButton.setText(getMessage("button.calculate"));
-            totalCostLabel.setText("0.00");
+            updateLabels();
+            totalCostValue.setText("0.00");
         });
     }
     
@@ -168,6 +185,6 @@ public class ShoppingCartController {
             itemTotalsContainer.getChildren().add(itemTotalLabel);
         }
         
-        totalCostLabel.setText(String.format("%.2f", total));
+        totalCostValue.setText(String.format("%.2f", total));
     }
 }
