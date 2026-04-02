@@ -1,9 +1,10 @@
 package com.shoppingcart;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,8 +18,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class ShoppingCartController {
-    private static final String BUNDLE_NAME = "MessagesBundle";
-    private ResourceBundle messages;
+    private LocalizationService localizationService;
+    private CartService cartService;
+    private Map<String, String> localizedStrings;
+    private String currentLanguage = "en";
     
     @FXML private ChoiceBox<String> languageChoice;
     @FXML private TextField numItemsField;
@@ -40,7 +43,13 @@ public class ShoppingCartController {
     
     @FXML
     public void initialize() {
-        messages = ResourceBundle.getBundle(BUNDLE_NAME, new Locale("en", "US"));
+        localizationService = new LocalizationService();
+        cartService = new CartService();
+        localizedStrings = localizationService.getLocalizationStrings(currentLanguage);
+        
+        if (localizedStrings.isEmpty()) {
+            System.err.println("Warning: No localization strings loaded. Using keys as fallback.");
+        }
         
         ObservableList<String> languages = FXCollections.observableArrayList(
             "English", "Suomi", "Svenska", "日本語", "العربية"
@@ -78,26 +87,27 @@ public class ShoppingCartController {
     }
     
     private void changeLanguage(String language) {
-        Locale locale;
+        String dbLanguage;
         switch (language) {
             case "Suomi":
-                locale = new Locale("fi", "FI");
+                dbLanguage = "fi";
                 break;
             case "Svenska":
-                locale = new Locale("sv", "SE");
+                dbLanguage = "sv";
                 break;
             case "日本語":
-                locale = new Locale("ja", "JP");
+                dbLanguage = "ja";
                 break;
             case "العربية":
-                locale = new Locale("ar", "AR");
+                dbLanguage = "ar";
                 break;
             default:
-                locale = new Locale("en", "US");
+                dbLanguage = "en";
         }
-        messages = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+        currentLanguage = dbLanguage;
+        localizedStrings = localizationService.getLocalizationStrings(dbLanguage);
         
-        boolean isRtl = locale.getLanguage().equals("ar");
+        boolean isRtl = dbLanguage.equals("ar");
         
         Platform.runLater(() -> {
             itemsContainer.setNodeOrientation(isRtl ? NodeOrientation.RIGHT_TO_LEFT : NodeOrientation.LEFT_TO_RIGHT);
@@ -108,11 +118,7 @@ public class ShoppingCartController {
     }
     
     private String getMessage(String key) {
-        try {
-            return messages.getString(key);
-        } catch (Exception e) {
-            return key;
-        }
+        return localizedStrings.getOrDefault(key, key);
     }
     
     @FXML
@@ -235,5 +241,24 @@ public class ShoppingCartController {
         }
         
         totalCostValue.setText(String.format("%.2f", total));
+        
+        List<Double> prices = new ArrayList<>();
+        List<Integer> quantities = new ArrayList<>();
+        List<Double> subtotals = new ArrayList<>();
+        
+        for (int i = 0; i < priceFields.size(); i++) {
+            try {
+                double price = Double.parseDouble(priceFields.get(i).getText());
+                int quantity = Integer.parseInt(quantityFields.get(i).getText());
+                double subtotal = ShoppingCartApp.calculateItemCost(price, quantity);
+                
+                prices.add(price);
+                quantities.add(quantity);
+                subtotals.add(subtotal);
+            } catch (NumberFormatException e) {
+            }
+        }
+        
+        cartService.saveCart(priceFields.size(), total, currentLanguage, prices, quantities, subtotals);
     }
 }
