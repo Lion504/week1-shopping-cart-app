@@ -1,13 +1,14 @@
 # Java Shopping Cart Application (JavaFX)
 
-A JavaFX GUI application that calculates shopping cart total with localization support.
+A JavaFX GUI application that calculates shopping cart total with localization support and database integration.
 
 ## Features
 
 - **JavaFX GUI** with FXML layout
 - Calculate item costs (price × quantity)
 - Calculate total cart cost
-- **Localization**: English, Finnish, Swedish, Japanese, Arabic
+- **Database Integration**: MySQL/MariaDB for localization and cart records
+- **Localization**: English, Finnish, Swedish, Japanese, Arabic (stored in database)
 - UTF-8 encoding support
 - RTL support for Arabic
 - Unit tests with JUnit 5
@@ -20,6 +21,16 @@ A JavaFX GUI application that calculates shopping cart total with localization s
 - Java 11 or higher
 - JavaFX 17
 - Maven 3.6+
+- MySQL or MariaDB
+
+## Database Setup
+
+1. Install MySQL or MariaDB
+2. Run the schema script:
+   ```bash
+   mysql -u root -p < database/schema.sql
+   ```
+3. Update database credentials in `DatabaseConnection.java` if needed
 
 ## Build
 
@@ -66,16 +77,16 @@ src/
 ├── main/
 │   ├── java/com/shoppingcart/
 │   │   ├── ShoppingCartApp.java       # Main application
-│   │   └── ShoppingCartController.java # FXML controller
+│   │   ├── ShoppingCartController.java # FXML controller
+│   │   ├── DatabaseConnection.java    # Database connection helper
+│   │   ├── LocalizationService.java   # Localization from database
+│   │   └── CartService.java           # Cart persistence service
 │   └── resources/
 │       ├── Main.fxml                  # FXML layout
-│       ├── MessagesBundle_en_US.properties
-│       ├── MessagesBundle_fi_FI.properties
-│       ├── MessagesBundle_sv_SE.properties
-│       ├── MessagesBundle_ja_JP.properties
-│       └── MessagesBundle_ar_AR.properties
-└── test/java/com/shoppingcart/
-    └── ShoppingCartAppTest.java       # Unit tests
+├── test/java/com/shoppingcart/
+│   └── ShoppingCartAppTest.java       # Unit tests
+database/
+└── schema.sql                         # Database schema and data
 
 Jenkinsfile                            # CI/CD pipeline
 Dockerfile                             # Docker image
@@ -86,11 +97,13 @@ pom.xml                                # Maven config
 
 | Language | Locale Code |
 |----------|-------------|
-| English | en_US |
-| Finnish | fi_FI |
-| Swedish | sv_SE |
-| Japanese | ja_JP |
-| Arabic | ar_AR |
+| English | en |
+| Finnish | fi |
+| Swedish | sv |
+| Japanese | ja |
+| Arabic | ar |
+
+Localization strings are stored in the `localization_strings` table in the database.
 
 ## UI Features
 
@@ -100,6 +113,30 @@ pom.xml                                # Maven config
 - Real-time total calculation
 - Individual item totals display
 - RTL support for Arabic
+- Cart records saved to database
+
+## Database Tables
+
+### cart_records
+- `id`: Primary key
+- `total_items`: Total number of items
+- `total_cost`: Total cost
+- `language`: Selected language
+- `created_at`: Timestamp
+
+### cart_items
+- `id`: Primary key
+- `cart_record_id`: Foreign key to cart_records
+- `item_number`: Item number
+- `price`: Item price
+- `quantity`: Item quantity
+- `subtotal`: Item subtotal
+
+### localization_strings
+- `id`: Primary key
+- `key`: Localization key
+- `value`: Localized string
+- `language`: Language code
 
 ## Jenkins Pipeline
 
