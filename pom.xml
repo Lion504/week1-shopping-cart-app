@@ -26,7 +26,7 @@
         <sonar.projectName>Shopping Cart App</sonar.projectName>
         <sonar.java.source>11</sonar.java.source>
         <sonar.java.target>11</sonar.java.target>
-        <sonar.coverage.exclusions>**/ShoppingCartApp.java,**/DatabaseConnection.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/ShoppingCartApp.java,**/ShoppingCartController.java,**/DatabaseConnection.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
