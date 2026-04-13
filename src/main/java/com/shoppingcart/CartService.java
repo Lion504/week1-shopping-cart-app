@@ -5,8 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CartService {
+
+    private static final Logger LOGGER = Logger.getLogger(CartService.class.getName());
 
     public int saveCartRecord(int totalItems, double totalCost, String language) {
         String query = "INSERT INTO cart_records (total_items, total_cost, language) VALUES (?, ?, ?)";
@@ -26,7 +30,7 @@ public class CartService {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to save cart record", e);
         }
 
         return recordId;
@@ -50,7 +54,7 @@ public class CartService {
             statement.executeBatch();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e, () -> "Failed to save cart items for record ID " + cartRecordId);
         }
     }
 
