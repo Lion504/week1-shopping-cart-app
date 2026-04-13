@@ -1,9 +1,15 @@
 pipeline {
     agent any
+
+    tools {
+        maven 'Maven3'
+    }
     
     environment {
         DOCKER_IMAGE_NAME = 'timo2233/shopping-cart-app'
         DOCKER_HUB_REPO = 'docker.io/timo2233/shopping-cart-app'
+        SONARQUBE_SERVER = 'SonarQubeServer'
+        SONAR_TOKEN = credentials('sonar-t')
     }
     
     stages {
@@ -36,6 +42,26 @@ pipeline {
                     reportFiles: 'index.html',
                     reportName: 'JaCoCo Coverage Report'
                 ])
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh '''
+                        mvn -B sonar:sonar \
+                          -Dsonar.token=$SONAR_TOKEN \
+                          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
         
