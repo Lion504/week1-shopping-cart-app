@@ -25,20 +25,20 @@ public class DatabaseConnection {
             try {
                 fileInput = Files.newInputStream(rootConfigPath);
             } catch (IOException e) {
-                throw new RuntimeException("Error opening root config.properties", e);
+                throw new DatabaseConfigurationException("Error opening root config.properties", e);
             }
         }
 
         try (InputStream input = classpathInput != null ? classpathInput : fileInput) {
             if (input == null) {
-                throw new RuntimeException("Unable to find config.properties (classpath or project root)");
+                throw new DatabaseConfigurationException("Unable to find config.properties (classpath or project root)");
             }
             props.load(input);
             URL = props.getProperty("db.url");
             USERNAME = props.getProperty("db.username");
             PASSWORD = props.getProperty("db.password");
         } catch (IOException e) {
-            throw new RuntimeException("Error loading database configuration", e);
+            throw new DatabaseConfigurationException("Error loading database configuration", e);
         }
 
         try {
