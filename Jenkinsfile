@@ -18,6 +18,17 @@ pipeline {
                 checkout scm
             }
         }
+
+        stage('Prepare Test Config') {
+            steps {
+                withCredentials([file(credentialsId: 'test-config-properties', variable: 'TEST_CFG')]) {
+                    sh '''
+                        mkdir -p src/test/resources
+                        cp "$TEST_CFG" src/test/resources/config.properties
+                    '''
+                }
+            }
+        }
         
         stage('Build') {
             steps {
