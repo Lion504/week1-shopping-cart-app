@@ -34,7 +34,7 @@ pipeline {
         
         stage('Build') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn -DskipTests clean package'
             }
         }
         
@@ -47,7 +47,14 @@ pipeline {
         stage('JaCoCo Coverage') {
             steps {
                 sh 'mvn jacoco:report'
-                archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo Coverage Report'
+                ])
             }
         }
 
