@@ -18,14 +18,18 @@ public class LocalizationService {
         String query = "SELECT `key`, value FROM localization_strings WHERE language = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
-            if (resultSet != null) {
-                while (resultSet.next()) {
-                    String key = resultSet.getString("key");
-                    String value = resultSet.getString("value");
-                    localizationMap.put(key, value);
+            statement.setString(1, language);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet != null) {
+                    while (resultSet.next()) {
+                        String key = resultSet.getString("key");
+                        String value = resultSet.getString("value");
+                        localizationMap.put(key, value);
+                    }
                 }
             }
 

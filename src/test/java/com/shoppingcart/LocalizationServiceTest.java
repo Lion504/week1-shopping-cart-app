@@ -38,6 +38,7 @@ class LocalizationServiceTest {
             assertEquals(2, result.size());
             assertEquals("Shopping Cart", result.get("app.title"));
             assertEquals("Language", result.get("label.language"));
+            verify(mockStmt).setString(1, "en");
             verify(mockRs).close();
             verify(mockStmt).close();
             verify(mockConn).close();

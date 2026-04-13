@@ -2,6 +2,8 @@ package com.shoppingcart;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -14,10 +16,22 @@ public class DatabaseConnection {
 
     static {
         Properties props = new Properties();
-        try (InputStream input = DatabaseConnection.class.getClassLoader()
-                .getResourceAsStream("config.properties")) {
+        InputStream classpathInput = DatabaseConnection.class.getClassLoader()
+                .getResourceAsStream("config.properties");
+
+        Path rootConfigPath = Path.of("config.properties");
+        InputStream fileInput = null;
+        if (classpathInput == null && Files.exists(rootConfigPath)) {
+            try {
+                fileInput = Files.newInputStream(rootConfigPath);
+            } catch (IOException e) {
+                throw new RuntimeException("Error opening root config.properties", e);
+            }
+        }
+
+        try (InputStream input = classpathInput != null ? classpathInput : fileInput) {
             if (input == null) {
-                throw new RuntimeException("Unable to find config.properties");
+                throw new RuntimeException("Unable to find config.properties (classpath or project root)");
             }
             props.load(input);
             URL = props.getProperty("db.url");
