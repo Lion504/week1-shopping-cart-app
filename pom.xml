@@ -20,8 +20,6 @@
         <javafx.version>17.0.2</javafx.version>
         <!-- SonarQube configuration for local analysis -->
         <sonar.host.url>http://localhost:9000</sonar.host.url>
-        <sonar.login>admin</sonar.login>
-        <sonar.password>admin</sonar.password>
         <sonar.projectKey>shopping-cart-app</sonar.projectKey>
         <sonar.projectName>Shopping Cart App</sonar.projectName>
         <sonar.java.source>11</sonar.java.source>
