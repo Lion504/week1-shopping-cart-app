@@ -25,7 +25,7 @@ public class ShoppingCartApp extends Application {
         
         Scene scene = new Scene(root);
         
-        stage.setTitle("Timo's Shopping Cart - JavaFX");
+        stage.setTitle("Shopping Cart - Wang Yongzhi");
         stage.setScene(scene);
         stage.setResizable(true);
         stage.show();
