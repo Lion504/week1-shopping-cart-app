@@ -14,15 +14,15 @@ public class LocalizationService {
         String query = "SELECT `key`, value FROM localization_strings WHERE language = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+             PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
 
-            statement.setString(1, language);
-            ResultSet resultSet = statement.executeQuery();
-
-            while (resultSet.next()) {
-                String key = resultSet.getString("key");
-                String value = resultSet.getString("value");
-                localizationMap.put(key, value);
+            if (resultSet != null) {
+                while (resultSet.next()) {
+                    String key = resultSet.getString("key");
+                    String value = resultSet.getString("value");
+                    localizationMap.put(key, value);
+                }
             }
 
         } catch (SQLException e) {
