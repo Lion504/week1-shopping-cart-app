@@ -11,3 +11,12 @@ target/
 .DS_Store
 
 *.log
+
+# Database configuration (contains sensitive credentials)
+config.properties
+
+# SonarQube
+.sonar/
+
+# Environment variables
+.env
