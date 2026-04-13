@@ -15,6 +15,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                deleteDir()
                 checkout scm
             }
         }
@@ -24,6 +25,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'test-config-properties', variable: 'TEST_CFG')]) {
                     sh '''
                         mkdir -p src/test/resources
+                        chmod u+w src/test/resources || true
                         cp "$TEST_CFG" src/test/resources/config.properties
                     '''
                 }
@@ -45,14 +47,7 @@ pipeline {
         stage('JaCoCo Coverage') {
             steps {
                 sh 'mvn jacoco:report'
-                publishHTML([
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo Coverage Report'
-                ])
+                archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
             }
         }
 
